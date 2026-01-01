@@ -1,0 +1,34 @@
+# 仮想環境
+venv/
+grade-matching-assistant-env/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 環境変数
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Desktop app
+desktop/node_modules/
+desktop/dist/
+desktop/.vite/
+desktop/*.log
+desktop/.DS_Store
+
