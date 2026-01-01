@@ -1,0 +1,32 @@
+{
+  "name": "grade-matching-assistant-desktop",
+  "version": "1.0.0",
+  "description": "DaVinci Resolveカラーグレーディング支援デスクトップアプリ",
+  "main": "electron/main.js",
+  "scripts": {
+    "predev": "tsc electron/preload.ts --outDir electron --module commonjs --target es2020 --esModuleInterop --skipLibCheck && tsc electron/main.ts --outDir electron --module commonjs --target es2020 --esModuleInterop --skipLibCheck",
+    "dev": "concurrently -n RENDERER,MAIN \"vite\" \"wait-on http://localhost:5173 && electron electron/main.js\"",
+    "build": "vite build && tsc electron/main.ts electron/preload.ts --outDir dist --module commonjs --target es2020 --esModuleInterop --skipLibCheck",
+    "start": "electron dist/main.js",
+    "preview": "vite preview"
+  },
+  "keywords": ["electron", "react", "color-grading"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
