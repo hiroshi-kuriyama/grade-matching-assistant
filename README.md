@@ -89,11 +89,11 @@ npm run dev
 
 これにより、Vite開発サーバーとElectronが同時に起動します。
 
-### ビルド
+### ~~ビルド~~
 
 ```powershell
-npm run build
-npm start
+~~npm run build~~
+~~npm start~~
 ```
 
 ### 使用方法
