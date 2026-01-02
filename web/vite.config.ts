@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/grade-matching-assistant/',
   build: {
-    outDir: 'dist',
+    outDir: '../../docs',
     emptyOutDir: true,
   },
   resolve: {
