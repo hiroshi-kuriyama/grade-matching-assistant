@@ -47,17 +47,3 @@ export function extractSections(text: string): ExtractedSection[] {
   return sections;
 }
 
-/**
- * 主要なセクションタイトルをチェック
- */
-export function isMainSection(title: string): boolean {
-  const mainSections = [
-    '全体方針',
-    '推奨ノード構成',
-    '各ノードごとの具体指示',
-    '各ノードの具体指示',
-  ];
-  
-  return mainSections.some((section) => title.includes(section));
-}
-

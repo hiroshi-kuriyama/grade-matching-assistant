@@ -1,63 +1,23 @@
 # Grade Matching Assistant
 
-DaVinci Resolveでのカラーグレーディングを支援する個人用ツールです。
+DaVinci Resolveでのカラーグレーディングを支援するWebアプリケーションです。
 
 リファレンス画像（目標ルック）と編集対象画像（現在の素材）の2枚を入力すると、編集対象画像をリファレンス画像のカラー傾向に近づけるための、DaVinci Resolve上での具体的なカラー調整手順をテキストで出力します。
 
-## プロジェクト構成
+## デモ
 
-このプロジェクトは2つのフェーズで構成されています：
+[GitHub Pages](https://hiroshi-kuriyama.github.io/grade-matching-assistant/) で公開されています。
 
-- **CLI版** (`main`ブランチ): Python製のCLIツール
-- **Desktop版** (`desktop`ブランチ): Electron + React製のデスクトップアプリ
-
-## CLI版の使用方法
-
-### インストール
-
-1. リポジトリをクローンまたはダウンロード
-2. 仮想環境を作成して有効化:
-
-```powershell
-python -m venv grade-matching-assistant-env
-.\grade-matching-assistant-env\Scripts\Activate.ps1
-```
-
-3. 依存関係をインストール:
-
-```powershell
-pip install -r requirements.txt
-```
-
-4. OpenAI APIキーを環境変数に設定:
-
-```powershell
-$env:OPENAI_API_KEY="your_api_key_here"
-```
-
-### 使用方法
-
-```powershell
-python app.py --reference reference.jpg --target target.jpg
-```
-
-## Desktop版の使用方法
-
-### 概要
-
-既存のPython CLIツール（`app.py`）をGUIで操作できるデスクトップアプリケーションです。
-
-### 機能
+## 機能
 
 - **画像入力方法**
   - ドラッグ&ドロップ
   - ファイル選択ダイアログ
-  - スクリーンショット範囲選択（透明オーバーレイ）
-  - グローバルホットキー（`Ctrl/Cmd + Shift + 1/2`）
+  - クリップボード貼り付け（`Ctrl+V` / `Cmd+V`）
 
 - **解析実行**
   - 2枚の画像を選択して解析開始
-  - 進捗ログのリアルタイム表示
+  - OpenAI GPT-4o/GPT-4o-miniを使用した画像分析
   - 結果の見出し抽出とカード表示
 
 - **結果表示**
@@ -65,19 +25,56 @@ python app.py --reference reference.jpg --target target.jpg
   - 見出し別のカード表示（全体方針、推奨ノード構成、各ノードの具体指示）
   - ワンクリックでクリップボードにコピー
 
+- **セキュリティ**
+  - APIキーはクライアント側のみで使用（サーバーに送信されません）
+  - メモリ保持（既定）またはlocalStorage保存（オプション）
+
+## 使用方法
+
+### 1. アクセス
+
+[GitHub Pages](https://hiroshi-kuriyama.github.io/grade-matching-assistant/) にアクセスするか、ローカルで開発サーバーを起動します。
+
+### 2. OpenAI APIキーの設定
+
+1. [OpenAI](https://platform.openai.com/) でAPIキーを取得
+2. アプリの「OpenAI APIキー」欄にキーを入力
+3. （オプション）「ブラウザに保存」にチェックを入れると、次回起動時も使用できます
+
+### 3. 画像の入力
+
+**ドラッグ&ドロップ**
+- 画像ファイルをドロップゾーンにドラッグ&ドロップ
+
+**ファイル選択**
+- 「ファイルを選択」ボタンをクリック
+
+**クリップボード貼り付け**
+- 画像をコピーした状態で、ドロップゾーンをクリックしてフォーカス
+- `Ctrl+V`（Windows）または `Cmd+V`（macOS）で貼り付け
+
+### 4. 解析の実行
+
+1. リファレンス画像と編集対象画像の両方を選択
+2. 「解析開始」ボタンをクリック
+3. 解析完了後、結果が表示されます
+
+### 5. 結果のコピー
+
+「指示文をコピー」ボタンをクリックすると、全文がクリップボードにコピーされます。
+
+## ローカル開発
+
 ### 前提条件
 
 - **Node.js 18以上**（npm含む）
   - インストール確認: `node --version` と `npm --version`
   - 未インストールの場合: [Node.js公式サイト](https://nodejs.org/)からLTS版をダウンロード
-  - インストール後、PowerShellを再起動して再度確認
-- **Python 3.x**（既存のCLIツールが動作すること）
-- 既存のPython CLIツール（`app.py`）が利用可能であること
 
 ### インストール
 
 ```powershell
-cd desktop
+cd web
 npm install
 ```
 
@@ -87,118 +84,65 @@ npm install
 npm run dev
 ```
 
-これにより、Vite開発サーバーとElectronが同時に起動します。
+これにより、Vite開発サーバーが起動します（通常は `http://localhost:5174`）。
 
-### ~~ビルド~~
-
-```powershell
-~~npm run build~~
-~~npm start~~
-```
-
-### 使用方法
-
-#### 1. 画像の入力
-
-**ドラッグ&ドロップ**
-- 画像ファイルをドロップゾーンにドラッグ&ドロップ
-
-**ファイル選択**
-- 「ファイルを選択」ボタンをクリック
-
-**スクリーンショット**
-- 「Referenceをキャプチャ」または「Targetをキャプチャ」ボタンをクリック
-- アプリが一時的に非表示になり、透明オーバーレイが表示されます
-- マウスで範囲をドラッグして選択
-- 選択確定で自動的にキャプチャされます
-- `Esc`キーでキャンセル
-
-**グローバルホットキー**
-- `Ctrl + Shift + 1`（Windows）または `Cmd + Shift + 1`（macOS）: Referenceをキャプチャ
-- `Ctrl + Shift + 2`（Windows）または `Cmd + Shift + 2`（macOS）: Targetをキャプチャ
-
-#### 2. 解析の実行
-
-1. リファレンス画像と編集対象画像の両方を選択
-2. 「解析開始」ボタンをクリック
-3. 進捗ログが表示されます
-4. 解析完了後、結果が表示されます
-
-#### 3. 結果のコピー
-
-「指示文をコピー」ボタンをクリックすると、全文がクリップボードにコピーされます。
-
-### Pythonのパス設定
-
-デフォルトでは、システムの`python`コマンドを使用します。
-
-カスタムPythonパスを使用する場合：
+### ビルド
 
 ```powershell
-# PowerShell
-$env:PYTHON_BIN="C:\path\to\python.exe"
-npm run dev
+npm run build
 ```
 
-### macOSでの画面収録権限
+ビルド成果物は `docs/` ディレクトリに出力されます。
 
-初回起動時に、macOSから「画面収録」の権限を要求されます。
+### プレビュー
 
-1. システム環境設定 → セキュリティとプライバシー → プライバシー
-2. 「画面収録」を選択
-3. アプリにチェックを入れる
+```powershell
+npm run preview
+```
 
-権限が付与されていない場合、スクリーンショット機能は動作しません。
+ビルド後のアプリをローカルでプレビューできます。
 
-### 既知の制限
-
-- **DPIスケーリング**: 初期実装では1倍スケールを想定（TODO: マルチDPI対応）
-- **マルチディスプレイ**: プライマリディスプレイのみ対応（TODO: 画面選択UI）
-- **履歴**: セッション内のみ保持（TODO: 永続化）
-
-### セキュリティ
-
-- ローカルのみの処理で、外部へのデータ送信は行いません
-- `contextIsolation: true`、`nodeIntegration: false`で安全なIPC通信を実装
-- クリップボード操作はRendererプロセスで実行
-
-### 開発
-
-#### ディレクトリ構造
+## プロジェクト構成
 
 ```
-desktop/
-├── electron/
-│   ├── main.ts              # メインプロセス
-│   ├── preload.ts           # IPCブリッジ
-│   ├── overlay.html         # スクリーンショットオーバーレイ
-│   └── overlay-renderer.js  # オーバーレイのレンダラー
-├── renderer/
+grade-matching-assistant/
+├── docs/              # GitHub Pages用のビルド成果物
 │   ├── index.html
-│   └── src/
-│       ├── App.tsx          # メインコンポーネント
-│       ├── components/      # UIコンポーネント
-│       ├── types.ts         # 型定義
-│       └── ipc.ts           # IPC型定義
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
+│   └── assets/
+├── web/               # Webアプリケーションのソースコード
+│   ├── src/
+│   │   ├── components/    # Reactコンポーネント
+│   │   │   ├── DropZone.tsx      # 画像ドロップゾーン
+│   │   │   ├── PasteHint.tsx     # クリップボード貼り付け導線
+│   │   │   └── ResultView.tsx     # 結果表示
+│   │   ├── lib/           # ライブラリ
+│   │   │   ├── apiKey.ts          # APIキー管理
+│   │   │   ├── images.ts          # 画像処理
+│   │   │   ├── openai.ts          # OpenAI API呼び出し
+│   │   │   ├── prompt.ts          # プロンプト生成
+│   │   │   └── format.ts           # 見出し抽出
+│   │   ├── App.tsx        # メインコンポーネント
+│   │   ├── main.tsx       # エントリーポイント
+│   │   └── styles.css     # スタイル
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tsconfig.json
+└── README.md
 ```
 
-#### IPC通信
+## 技術スタック
 
-**Renderer → Main**
-- `analysis:start`: 解析開始
-- `capture:start`: スクリーンショット開始
-- `files:openDialog`: ファイル選択ダイアログ
+- **React 18** - UIフレームワーク
+- **TypeScript** - 型安全性
+- **Vite** - ビルドツール
+- **OpenAI API** - GPT-4o/GPT-4o-miniを使用した画像分析
 
-**Main → Renderer**
-- `analysis:stdout`: 標準出力（逐次）
-- `analysis:done`: 解析完了
-- `analysis:error`: エラー
-- `capture:ready`: キャプチャ準備完了
-- `capture:done`: キャプチャ完了
-- `capture:error`: キャプチャエラー
+## セキュリティ
+
+- ローカルのみの処理で、外部へのデータ送信はOpenAI APIへの直接呼び出しのみ
+- APIキーはクライアント側のみで使用され、サーバーには送信されません
+- Content Security Policy (CSP) を設定してセキュリティを強化
 
 ## ライセンス
 

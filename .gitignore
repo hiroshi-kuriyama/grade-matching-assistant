@@ -25,13 +25,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Desktop app
-desktop/node_modules/
-desktop/dist/
-desktop/.vite/
-desktop/*.log
-desktop/.DS_Store
-
 # Web app
 web/node_modules/
 web/dist/
