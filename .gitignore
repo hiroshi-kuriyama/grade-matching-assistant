@@ -32,6 +32,13 @@ desktop/.vite/
 desktop/*.log
 desktop/.DS_Store
 
+# Web app
+web/node_modules/
+web/dist/
+web/.vite/
+web/*.log
+web/.DS_Store
+
 # 画像ファイル
 *.png
 *.jpg
