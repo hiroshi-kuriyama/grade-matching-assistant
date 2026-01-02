@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import type { ImageSlot } from '../types';
 
 interface DropZoneProps {
@@ -10,8 +10,27 @@ interface DropZoneProps {
 
 const DropZone: React.FC<DropZoneProps> = ({ slot, imagePath, onFileSelect, onPathChange }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const slotLabel = slot === 'reference' ? 'リファレンス画像' : '編集対象画像';
+
+  // 画像パスからDataURLを取得
+  useEffect(() => {
+    if (imagePath && window.electronAPI) {
+      window.electronAPI.getImageDataUrl(imagePath).then((dataUrl) => {
+        if (dataUrl) {
+          setImageDataUrl(dataUrl);
+        } else {
+          setImageDataUrl(null);
+        }
+      }).catch((error) => {
+        console.error('Failed to load image:', error);
+        setImageDataUrl(null);
+      });
+    } else {
+      setImageDataUrl(null);
+    }
+  }, [imagePath]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -64,7 +83,11 @@ const DropZone: React.FC<DropZoneProps> = ({ slot, imagePath, onFileSelect, onPa
       >
         {imagePath ? (
           <div className="image-preview">
-            <img src={`file://${imagePath}`} alt={slotLabel} />
+            {imageDataUrl ? (
+              <img src={imageDataUrl} alt={slotLabel} />
+            ) : (
+              <div style={{ padding: '20px', color: '#666' }}>画像を読み込み中...</div>
+            )}
             <div className="image-info">
               <p className="image-path">{imagePath}</p>
               <button onClick={handleRemove} className="remove-btn">

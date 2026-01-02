@@ -4,7 +4,13 @@ DaVinci Resolveカラーグレーディング支援CLIツール
 
 import argparse
 import sys
+import io
 from pathlib import Path
+
+# WindowsでUTF-8出力を強制
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 from analyzer.image_features import extract_features
 from analyzer.prompt import create_analysis_prompt

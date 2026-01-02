@@ -4,7 +4,7 @@
  */
 
 const electron = require('electron');
-const { app, BrowserWindow, ipcMain, dialog, globalShortcut, desktopCapturer } = electron;
+const { app, BrowserWindow, ipcMain, dialog, globalShortcut, desktopCapturer, protocol } = electron;
 const electronScreen = electron.screen;
 const { spawn } = require('child_process');
 const path = require('path');
@@ -65,6 +65,7 @@ function createMainWindow(): void {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: false, // ローカルファイルアクセスのため
     },
   });
 
@@ -261,6 +262,11 @@ function startAnalysis(referencePath: string, targetPath: string): void {
   let fullOutput = '';
   let errorOutput = '';
 
+  // WindowsでUTF-8を強制するための環境変数を設定
+  const env = { ...process.env };
+  env.PYTHONIOENCODING = 'utf-8';
+  env.PYTHONUTF8 = '1';
+  
   analysisProcess = spawn(pythonPath, [
     appPyPath,
     '--reference',
@@ -269,7 +275,7 @@ function startAnalysis(referencePath: string, targetPath: string): void {
     absTargetPath,
   ], {
     cwd: path.dirname(appPyPath),
-    env: { ...process.env },
+    env: env,
   });
 
   analysisProcess.stdout?.on('data', (data: Buffer) => {
@@ -369,6 +375,20 @@ ipcMain.handle('files:saveTemp', async (_event: any, payload: { data: number[]; 
   fs.writeFileSync(filePath, buffer);
 
   return filePath;
+});
+
+ipcMain.handle('files:getImageDataUrl', async (_event: any, filePath: string) => {
+  try {
+    const { nativeImage } = require('electron');
+    const image = nativeImage.createFromPath(filePath);
+    if (image.isEmpty()) {
+      return null;
+    }
+    return image.toDataURL();
+  } catch (error: any) {
+    console.error('Failed to load image:', error);
+    return null;
+  }
 });
 
 // グローバルホットキー

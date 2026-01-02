@@ -3,7 +3,8 @@
  * ウィンドウ作成・IPC・Python起動・スクリーンショット管理
  */
 const electron = require('electron');
-const { app, BrowserWindow, ipcMain, dialog, globalShortcut, desktopCapturer, screen } = electron;
+const { app, BrowserWindow, ipcMain, dialog, globalShortcut, desktopCapturer, protocol } = electron;
+const electronScreen = electron.screen;
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -56,6 +57,7 @@ function createMainWindow() {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
+            webSecurity: false, // ローカルファイルアクセスのため
         },
     });
     if (isDev) {
@@ -73,7 +75,7 @@ function createMainWindow() {
  * スクリーンショット用の透明オーバーレイウィンドウを作成
  */
 function createOverlayWindow() {
-    const primaryDisplay = screen.getPrimaryDisplay();
+    const primaryDisplay = electronScreen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
     overlayWindow = new BrowserWindow({
         width,
@@ -137,10 +139,10 @@ async function executeCapture(startPos, endPos) {
             throw new Error('選択範囲が小さすぎます');
         }
         // デスクトップキャプチャを取得
-        const primaryDisplay = screen.getPrimaryDisplay();
+        const capturePrimaryDisplay = electronScreen.getPrimaryDisplay();
         const sources = await desktopCapturer.getSources({
             types: ['screen'],
-            thumbnailSize: { width: primaryDisplay.size.width, height: primaryDisplay.size.height },
+            thumbnailSize: { width: capturePrimaryDisplay.size.width, height: capturePrimaryDisplay.size.height },
         });
         if (sources.length === 0) {
             throw new Error('スクリーンキャプチャを取得できませんでした');
@@ -161,8 +163,8 @@ async function executeCapture(startPos, endPos) {
         // サムネイルから画像を作成（解像度は低いですが動作確認用）
         const fullImage = nativeImage.createFromDataURL(primarySource.thumbnail.toDataURL());
         // サムネイルのスケールを計算
-        const primaryDisplay = screen.getPrimaryDisplay();
-        const displaySize = primaryDisplay.size;
+        const scalePrimaryDisplay = electronScreen.getPrimaryDisplay();
+        const displaySize = scalePrimaryDisplay.size;
         const scaleX = primarySource.thumbnail.getSize().width / displaySize.width;
         const scaleY = primarySource.thumbnail.getSize().height / displaySize.height;
         // スケールされた座標でクロップ
@@ -220,6 +222,10 @@ function startAnalysis(referencePath, targetPath) {
     const absTargetPath = path.resolve(targetPath);
     let fullOutput = '';
     let errorOutput = '';
+    // WindowsでUTF-8を強制するための環境変数を設定
+    const env = { ...process.env };
+    env.PYTHONIOENCODING = 'utf-8';
+    env.PYTHONUTF8 = '1';
     analysisProcess = spawn(pythonPath, [
         appPyPath,
         '--reference',
@@ -228,7 +234,7 @@ function startAnalysis(referencePath, targetPath) {
         absTargetPath,
     ], {
         cwd: path.dirname(appPyPath),
-        env: { ...process.env },
+        env: env,
     });
     analysisProcess.stdout?.on('data', (data) => {
         const chunk = data.toString('utf-8');
@@ -313,6 +319,20 @@ ipcMain.handle('files:saveTemp', async (_event, payload) => {
     const buffer = Buffer.from(payload.data);
     fs.writeFileSync(filePath, buffer);
     return filePath;
+});
+ipcMain.handle('files:getImageDataUrl', async (_event, filePath) => {
+    try {
+        const { nativeImage } = require('electron');
+        const image = nativeImage.createFromPath(filePath);
+        if (image.isEmpty()) {
+            return null;
+        }
+        return image.toDataURL();
+    }
+    catch (error) {
+        console.error('Failed to load image:', error);
+        return null;
+    }
 });
 // グローバルホットキー
 app.whenReady().then(() => {
