@@ -71,7 +71,7 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onCopy }) => {
         </div>
       ) : (
         <div className="result-full">
-          <pre>{result}</pre>
+          <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{result}</pre>
         </div>
       )}
     </div>

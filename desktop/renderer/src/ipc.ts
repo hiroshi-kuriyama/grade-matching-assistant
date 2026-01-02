@@ -9,6 +9,7 @@ export interface ElectronAPI {
   startCapture: (payload: { slot: 'reference' | 'target' }) => void;
   openFileDialog: (options?: { filters?: { name: string; extensions: string[] }[] }) => Promise<string | null>;
   saveTempFile: (payload: { data: number[]; filename: string }) => Promise<string | null>;
+  getImageDataUrl: (filePath: string) => Promise<string | null>;
 
   // Main → Renderer (イベントリスナー)
   onAnalysisStdout: (callback: (payload: { chunk: string }) => void) => () => void;

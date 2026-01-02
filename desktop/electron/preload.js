@@ -19,6 +19,9 @@ const electronAPI = {
     saveTempFile: async (payload) => {
         return await electron_1.ipcRenderer.invoke('files:saveTemp', payload);
     },
+    getImageDataUrl: async (filePath) => {
+        return await electron_1.ipcRenderer.invoke('files:getImageDataUrl', filePath);
+    },
     // Main → Renderer (イベントリスナー)
     onAnalysisStdout: (callback) => {
         const handler = (_event, payload) => callback(payload);
