@@ -34,10 +34,10 @@ export function extractSections(text: string): ExtractedSection[] {
     const start = matches[i].index;
     const end = i < matches.length - 1 ? matches[i + 1].index : text.length;
     let content = text.substring(start, end);
-    
+
     // 見出し行を削除
     content = content.replace(/^###?\s+.+$/m, '').trim();
-    
+
     sections.push({
       title: matches[i].title,
       content,
@@ -46,4 +46,3 @@ export function extractSections(text: string): ExtractedSection[] {
 
   return sections;
 }
-

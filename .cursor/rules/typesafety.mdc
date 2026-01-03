@@ -1,0 +1,25 @@
+---
+description: "TypeScript 型安全の厳守（TS/TSXで自動付与）"
+globs:
+  - "web/src/**/*.ts"
+  - "web/src/**/*.tsx"
+alwaysApply: false
+---
+## 禁止事項
+- `// @ts-ignore` と `// @ts-nocheck` の使用を禁止
+- 暫定的な `any` を安易に残さない（Union / 型ガード / enum で表現）
+
+## 推奨
+- 外部API応答は `unknown` → **型ガード関数**で安全にパース
+- UI層に `undefined` を渡さない（取得時に必須値を保証）
+- `noImplicitAny: true`, `strict: true`, `noUncheckedIndexedAccess: true` の前提で実装
+
+## 例（禁止→許容）
+```ts
+// ❌
+/* @ts-ignore */ const name: any = getName();
+
+// ✅
+type Name = { value: string };
+function parseName(x: unknown): Name | null { /* narrow and validate */ }
+```

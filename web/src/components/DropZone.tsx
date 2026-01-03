@@ -39,7 +39,7 @@ const DropZone: React.FC<DropZoneProps> = ({
     setIsDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find((file) => /\.(png|jpg|jpeg)$/i.test(file.name));
+    const imageFile = files.find(file => /\.(png|jpg|jpeg)$/i.test(file.name));
 
     if (imageFile) {
       onFileSelect(imageFile);
@@ -109,4 +109,3 @@ const DropZone: React.FC<DropZoneProps> = ({
 };
 
 export default DropZone;
-

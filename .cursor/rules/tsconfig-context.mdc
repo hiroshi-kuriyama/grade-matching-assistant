@@ -1,0 +1,16 @@
+---
+description: "tsconfig の前提（常時適用）"
+alwaysApply: true
+---
+# TypeScript Configuration Context
+
+本プロジェクトは strict 前提。型エラーは解消してからコミット。
+
+よく使うオプション：
+- `strict: true`
+- `noImplicitAny: true`
+- `noUncheckedIndexedAccess: true`
+- `exactOptionalPropertyTypes: true`
+- `forceConsistentCasingInFileNames: true`
+
+@file web/tsconfig.json
