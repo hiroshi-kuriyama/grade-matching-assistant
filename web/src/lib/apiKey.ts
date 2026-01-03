@@ -7,6 +7,12 @@
 const STORAGE_KEY = 'openai_api_key';
 const STORAGE_ENABLED_KEY = 'openai_api_key_storage_enabled';
 
+interface WindowWithApiKey extends Window {
+  __openaiApiKey?: string;
+}
+
+const getWindow = (): WindowWithApiKey => window as WindowWithApiKey;
+
 export interface ApiKeyState {
   key: string | null;
   storageEnabled: boolean;
@@ -17,7 +23,7 @@ export interface ApiKeyState {
  */
 export function getApiKey(): string | null {
   // まずメモリから取得を試みる（セッション保持）
-  const memoryKey = (window as any).__openaiApiKey;
+  const memoryKey = getWindow().__openaiApiKey;
   if (memoryKey) {
     return memoryKey;
   }
@@ -28,11 +34,11 @@ export function getApiKey(): string | null {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         // メモリにも保持
-        (window as any).__openaiApiKey = stored;
+        getWindow().__openaiApiKey = stored;
         return stored;
       }
-    } catch (e) {
-      console.warn('Failed to read API key from localStorage:', e);
+    } catch {
+      console.warn('Failed to read API key from localStorage');
     }
   }
 
@@ -44,7 +50,7 @@ export function getApiKey(): string | null {
  */
 export function setApiKey(key: string, saveToStorage: boolean = false): void {
   // メモリに保持
-  (window as any).__openaiApiKey = key;
+  getWindow().__openaiApiKey = key;
 
   // localStorage保存の設定
   setStorageEnabled(saveToStorage);
@@ -52,14 +58,14 @@ export function setApiKey(key: string, saveToStorage: boolean = false): void {
   if (saveToStorage) {
     try {
       localStorage.setItem(STORAGE_KEY, key);
-    } catch (e) {
-      console.warn('Failed to save API key to localStorage:', e);
+    } catch {
+      console.warn('Failed to save API key to localStorage');
     }
   } else {
     // 無効化された場合は削除
     try {
       localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {
+    } catch {
       // 無視
     }
   }
@@ -70,13 +76,13 @@ export function setApiKey(key: string, saveToStorage: boolean = false): void {
  */
 export function clearApiKey(): void {
   // メモリから削除
-  delete (window as any).__openaiApiKey;
+  delete getWindow().__openaiApiKey;
 
   // localStorageからも削除
   try {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_ENABLED_KEY);
-  } catch (e) {
+  } catch {
     // 無視
   }
 }
@@ -87,7 +93,7 @@ export function clearApiKey(): void {
 export function isStorageEnabled(): boolean {
   try {
     return localStorage.getItem(STORAGE_ENABLED_KEY) === 'true';
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -102,8 +108,8 @@ export function setStorageEnabled(enabled: boolean): void {
     } else {
       localStorage.removeItem(STORAGE_ENABLED_KEY);
     }
-  } catch (e) {
-    console.warn('Failed to set storage enabled flag:', e);
+  } catch {
+    console.warn('Failed to set storage enabled flag');
   }
 }
 
@@ -116,4 +122,3 @@ export function getApiKeyState(): ApiKeyState {
     storageEnabled: isStorageEnabled(),
   };
 }
-

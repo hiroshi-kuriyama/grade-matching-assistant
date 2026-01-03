@@ -1,0 +1,21 @@
+---
+description: "不要コード/機能削除・簡素化のガイド（必要時に参照）"
+alwaysApply: false
+---
+# 手順（@refactor-cleanup を呼んで使用）
+
+1. `web/src/**/*` を走査し、以下を一覧化：
+   - 未使用 import/変数/関数/コンポーネント
+   - コメントアウトのみのブロック
+   - 実体のない export
+
+2. 削除候補ごとに「削除理由」付きの小さなPR案を提示
+3. `npm run lint && npm run typecheck` が通ることを確認
+
+# 禁止事項
+- あいまいな TODO を残して温存
+- 可読性を損なう過度な圧縮
+
+# ヒント（ESLint）
+- `no-unused-vars`, `no-unused-expressions`
+- 必要なら `import/no-unused-modules`（プラグイン追加）

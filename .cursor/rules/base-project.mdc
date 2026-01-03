@@ -1,0 +1,33 @@
+---
+description: "Grade Matching Assistant のベース方針（常時適用）"
+alwaysApply: true
+---
+# Project
+- Frontend: React + TypeScript + Vite
+- Src: `web/` , Build: `docs/`
+- Two images (reference/target) → OpenAI GPT-4o/4o-mini → DaVinci Resolve instructions
+
+# Coding Standards
+- Prefer **function components + hooks**; avoid classes
+- **Strict typing**; avoid `any/unknown` unless narrowed
+- **Side effects in hooks**, helper is pure when possible
+- Naming: `is*/has*/should*` for booleans; meaningful names
+- Structure: UI → `src/components/`, logic/helpers → `src/lib/`
+- Image handling centralised in `lib/images.ts`; OpenAI calls in `lib/openai.ts`
+- Errors: `try/catch` with user-friendly message + dev log
+
+# Cleanup Policy
+- Remove dead code, commented blocks, unused imports/vars/exports
+- Experimental code goes to `experimental/` and is excluded from build
+
+# Type Safety
+- **Do NOT** use `// @ts-ignore` or `// @ts-nocheck`
+- Model external data with types; parse via type guards
+
+# PR Checklist
+- `npm run lint` / `npm run format:check` / `npm run typecheck` must pass
+- No type errors; no unused symbols
+- UI copy concise (JA allowed), code comments can be EN
+
+@file web/vite.config.ts
+@file web/tsconfig.json

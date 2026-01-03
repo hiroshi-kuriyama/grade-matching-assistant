@@ -5,9 +5,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -84,7 +84,7 @@ body {
   cursor: pointer;
 }
 
-.save-key-checkbox input[type="checkbox"] {
+.save-key-checkbox input[type='checkbox'] {
   cursor: pointer;
 }
 
@@ -369,4 +369,3 @@ body {
   padding: 15px;
   border-radius: 4px;
 }
-

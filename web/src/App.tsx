@@ -5,7 +5,7 @@ import ResultView from './components/ResultView';
 import { getApiKey, setApiKey, clearApiKey, isStorageEnabled } from './lib/apiKey';
 import { extractFeatures, imageToBase64, fileToDataUrl } from './lib/images';
 import { createAnalysisPrompt } from './lib/prompt';
-import { analyzeImages } from './lib/openai';
+import { analyzeImages, OpenAIApiError } from './lib/openai';
 import './styles.css';
 
 const App: React.FC = () => {
@@ -125,16 +125,36 @@ const App: React.FC = () => {
       ]);
 
       // OpenAI API呼び出し
-      const analysisResult = await analyzeImages(
-        currentApiKey,
-        prompt,
-        refBase64,
-        targetBase64
-      );
+      const analysisResult = await analyzeImages(currentApiKey, prompt, refBase64, targetBase64);
 
       setResult(analysisResult);
     } catch (err) {
-      setError(`解析に失敗しました: ${(err as Error).message}`);
+      if (err instanceof OpenAIApiError) {
+        // エラータイプに応じたメッセージを表示
+        let userMessage = '解析に失敗しました: ';
+        switch (err.type) {
+          case 'network':
+            userMessage += 'ネットワークエラー。インターネット接続を確認してください。';
+            break;
+          case 'cors':
+            userMessage +=
+              'CORSエラー。ブラウザのセキュリティポリシーによりリクエストがブロックされました。';
+            break;
+          case 'http':
+            userMessage += `HTTPエラー (${err.statusCode ?? '不明'})。APIキーやリクエストを確認してください。`;
+            break;
+          case 'api':
+            userMessage += `APIエラー: ${err.message}`;
+            break;
+          default:
+            userMessage += err.message;
+        }
+        setError(userMessage);
+        console.error('OpenAI API Error:', err);
+      } else {
+        setError(`解析に失敗しました: ${err instanceof Error ? err.message : String(err)}`);
+        console.error('Unexpected error:', err);
+      }
     } finally {
       setAnalyzing(false);
     }
@@ -170,23 +190,26 @@ const App: React.FC = () => {
               type="password"
               placeholder="sk-..."
               value={apiKey}
-              onChange={(e) => handleApiKeyChange(e.target.value)}
+              onChange={e => handleApiKeyChange(e.target.value)}
               className="api-key-field"
             />
             <label className="save-key-checkbox">
               <input
                 type="checkbox"
                 checked={saveApiKey}
-                onChange={(e) => handleSaveApiKeyChange(e.target.checked)}
+                onChange={e => handleSaveApiKeyChange(e.target.checked)}
               />
               <span>ブラウザに保存（次回起動時も使用）</span>
             </label>
             {apiKey && (
-              <button onClick={() => {
-                clearApiKey();
-                setApiKeyState('');
-                setSaveApiKey(false);
-              }} className="clear-key-btn">
+              <button
+                onClick={() => {
+                  clearApiKey();
+                  setApiKeyState('');
+                  setSaveApiKey(false);
+                }}
+                className="clear-key-btn"
+              >
                 キーを削除
               </button>
             )}
@@ -204,7 +227,7 @@ const App: React.FC = () => {
               slot="reference"
               imageFile={referenceFile}
               imageDataUrl={referenceDataUrl}
-              onFileSelect={(file) => handleFileSelect('reference', file)}
+              onFileSelect={file => handleFileSelect('reference', file)}
               onRemove={() => handleRemove('reference')}
               isFocused={focusedSlot === 'reference'}
               onFocus={() => setFocusedSlot('reference')}
@@ -213,7 +236,7 @@ const App: React.FC = () => {
               slot="target"
               imageFile={targetFile}
               imageDataUrl={targetDataUrl}
-              onFileSelect={(file) => handleFileSelect('target', file)}
+              onFileSelect={file => handleFileSelect('target', file)}
               onRemove={() => handleRemove('target')}
               isFocused={focusedSlot === 'target'}
               onFocus={() => setFocusedSlot('target')}
@@ -249,4 +272,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-

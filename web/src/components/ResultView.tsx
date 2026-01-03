@@ -27,9 +27,7 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onCopy }) => {
           {sections.map((section, index) => (
             <div key={index} className="result-section">
               <h3>{section.title}</h3>
-              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
-                {section.content}
-              </pre>
+              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{section.content}</pre>
             </div>
           ))}
         </div>
@@ -43,4 +41,3 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onCopy }) => {
 };
 
 export default ResultView;
-
