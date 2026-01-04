@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import DropZone, { type ImageSlot } from './components/DropZone';
 import PasteHint from './components/PasteHint';
 import ResultView from './components/ResultView';
+import UsageModal from './components/UsageModal';
+import PromptEditor from './components/PromptEditor';
 import { getApiKey, setApiKey, clearApiKey, isStorageEnabled } from './lib/apiKey';
-import { extractFeatures, imageToBase64, fileToDataUrl } from './lib/images';
+import { extractFeatures, imageToBase64, fileToDataUrl, type ImageFeatures } from './lib/images';
 import { createAnalysisPrompt } from './lib/prompt';
 import { analyzeImages, OpenAIApiError } from './lib/openai';
 import './styles.css';
@@ -19,6 +21,10 @@ const App: React.FC = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isUsageModalOpen, setIsUsageModalOpen] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState<string | null>(null);
+  const [referenceFeatures, setReferenceFeatures] = useState<ImageFeatures | null>(null);
+  const [targetFeatures, setTargetFeatures] = useState<ImageFeatures | null>(null);
 
   // 初期化: 保存されたAPIキーを読み込み
   useEffect(() => {
@@ -110,13 +116,17 @@ const App: React.FC = () => {
 
     try {
       // 画像特徴量を抽出
-      const [refFeatures, targetFeatures] = await Promise.all([
+      const [refFeatures, targetFeat] = await Promise.all([
         extractFeatures(referenceFile),
         extractFeatures(targetFile),
       ]);
 
-      // プロンプト生成
-      const prompt = createAnalysisPrompt(refFeatures, targetFeatures);
+      // 特徴量を保存（プロンプト編集用）
+      setReferenceFeatures(refFeatures);
+      setTargetFeatures(targetFeat);
+
+      // プロンプト生成（カスタムプロンプトがあればそれを使用、なければデフォルト）
+      const prompt = customPrompt || createAnalysisPrompt(refFeatures, targetFeat);
 
       // 画像をBase64に変換
       const [refBase64, targetBase64] = await Promise.all([
@@ -177,8 +187,15 @@ const App: React.FC = () => {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Grade Matching Assistant</h1>
-        <p>DaVinci Resolveカラーグレーディング支援ツール</p>
+        <div className="header-content">
+          <div>
+            <h1>Grade Matching Assistant</h1>
+            <p>DaVinci Resolveカラーグレーディング支援ツール</p>
+          </div>
+          <button onClick={() => setIsUsageModalOpen(true)} className="usage-link-btn">
+            使い方
+          </button>
+        </div>
       </header>
 
       <main className="app-main">
@@ -245,6 +262,14 @@ const App: React.FC = () => {
 
           <PasteHint focusedSlot={focusedSlot} />
 
+          {/* プロンプト編集セクション */}
+          <PromptEditor
+            referenceFeatures={referenceFeatures}
+            targetFeatures={targetFeatures}
+            customPrompt={customPrompt}
+            onPromptChange={setCustomPrompt}
+          />
+
           <div className="analysis-controls">
             <button
               onClick={handleStartAnalysis}
@@ -267,6 +292,9 @@ const App: React.FC = () => {
         {/* 結果表示 */}
         {result && <ResultView result={result} onCopy={handleCopy} />}
       </main>
+
+      {/* 使い方モーダル */}
+      <UsageModal isOpen={isUsageModalOpen} onClose={() => setIsUsageModalOpen(false)} />
     </div>
   );
 };

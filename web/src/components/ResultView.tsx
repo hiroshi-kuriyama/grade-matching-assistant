@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import { extractSections } from '../lib/format';
 
 interface ResultViewProps {
@@ -27,13 +28,17 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onCopy }) => {
           {sections.map((section, index) => (
             <div key={index} className="result-section">
               <h3>{section.title}</h3>
-              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{section.content}</pre>
+              <div className="result-content">
+                <ReactMarkdown>{section.content}</ReactMarkdown>
+              </div>
             </div>
           ))}
         </div>
       ) : (
         <div className="result-full">
-          <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{result}</pre>
+          <div className="result-content">
+            <ReactMarkdown>{result}</ReactMarkdown>
+          </div>
         </div>
       )}
     </div>
