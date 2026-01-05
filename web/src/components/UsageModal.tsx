@@ -42,17 +42,22 @@ const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose }) => {
 
           <section>
             <h3>2. 画像の入力</h3>
-            <h4>ドラッグ&ドロップ</h4>
-            <p>画像ファイルをドロップゾーンにドラッグ&ドロップ</p>
-
-            <h4>ファイル選択</h4>
-            <p>「ファイルを選択」ボタンをクリック</p>
-
-            <h4>クリップボード貼り付け</h4>
-            <p>
-              画像をコピーした状態で、ドロップゾーンをクリックしてフォーカスし、
-              <kbd>Ctrl+V</kbd>（Windows）または <kbd>Cmd+V</kbd>（macOS）で貼り付け
-            </p>
+            <p>これらのいずれかの方法で画像を入力できます。</p>
+            <ol>
+              <li>
+                <strong>ドラッグ&ドロップ</strong><br />
+                画像ファイルをドロップゾーンにドラッグ&ドロップ
+              </li>
+              <li>
+                <strong>ファイル選択</strong><br />
+                「ファイルを選択」ボタンをクリック
+              </li>
+              <li>
+                <strong>クリップボード貼り付け</strong><br />
+                画像をコピーした状態でドロップゾーンをクリックしてフォーカスし、
+                <kbd>Ctrl+V</kbd>（Windows）または <kbd>Cmd+V</kbd>（macOS）で貼り付け
+              </li>
+            </ol>
           </section>
 
           <section>
