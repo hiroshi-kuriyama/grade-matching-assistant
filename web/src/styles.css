@@ -49,6 +49,31 @@ body {
   opacity: 0.9;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.github-link-header {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.2s;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.github-link-header:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.github-link-header svg {
+  display: block;
+}
+
 .usage-link-btn {
   padding: 8px 16px;
   background: rgba(255, 255, 255, 0.2);
