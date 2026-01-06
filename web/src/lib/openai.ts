@@ -1,7 +1,9 @@
 /**
  * OpenAI API呼び出し
- * クライアント側から直接呼び出し
+ * クライアント側から直接呼び出し、またはGAS経由
  */
+
+import { GAS_ENDPOINT, IS_HOSTED_MODE } from '../config';
 
 export interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -177,14 +179,77 @@ function parseOpenAIResponse(data: unknown): OpenAIResponse {
 
 /**
  * 画像2枚とプロンプトで解析を実行
+ * 開発者負担版（IS_HOSTED_MODE）またはapiKeyがnullの場合はGAS経由で呼び出し
  */
 export async function analyzeImages(
-  apiKey: string,
+  apiKey: string | null,
   prompt: string,
   referenceImageDataUrl: string,
   targetImageDataUrl: string,
   model: string = 'gpt-4o-mini'
 ): Promise<string> {
+  // 開発者負担版（GAS経由）の場合
+  if (IS_HOSTED_MODE || !apiKey) {
+    if (!GAS_ENDPOINT) {
+      throw new OpenAIApiError(
+        'GASエンドポイントが設定されていません。環境変数 VITE_GAS_ENDPOINT を設定してください。',
+        'api'
+      );
+    }
+
+    try {
+      const response = await fetch(GAS_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          referenceImage: referenceImageDataUrl,
+          targetImage: targetImageDataUrl,
+          model,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const errorMessage = errorData?.error || `HTTP ${response.status}: ${response.statusText}`;
+        throw new OpenAIApiError(errorMessage, 'api', response.status);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        throw new OpenAIApiError('APIレスポンスにコンテンツが含まれていません', 'api');
+      }
+      return content;
+    } catch (error) {
+      if (error instanceof OpenAIApiError) {
+        throw error;
+      }
+      // ネットワークエラー
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new OpenAIApiError(
+          'ネットワークエラー: GASエンドポイントへの接続に失敗しました。インターネット接続を確認してください。',
+          'network',
+          undefined,
+          error
+        );
+      }
+      throw new OpenAIApiError(
+        `予期しないエラー: ${error instanceof Error ? error.message : String(error)}`,
+        'unknown',
+        undefined,
+        error
+      );
+    }
+  }
+
+  // 既存のクライアント側直接呼び出し（apiKeyが必須）
+  if (!apiKey) {
+    throw new OpenAIApiError('APIキーが必要です', 'api');
+  }
+
   const messages: OpenAIMessage[] = [
     {
       role: 'system',

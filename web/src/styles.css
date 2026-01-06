@@ -161,6 +161,26 @@ body {
   line-height: 1.5;
 }
 
+.hosted-mode-notice {
+  padding: 15px;
+  background: #e8f5e9;
+  border-radius: 8px;
+  border: 1px solid #4caf50;
+}
+
+.hosted-mode-notice h2 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #2e7d32;
+}
+
+.hosted-mode-notice p {
+  margin: 0;
+  font-size: 14px;
+  color: #2e7d32;
+  line-height: 1.6;
+}
+
 .input-section {
   margin-bottom: 30px;
 }

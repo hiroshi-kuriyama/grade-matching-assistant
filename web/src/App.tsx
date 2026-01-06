@@ -8,6 +8,7 @@ import { getApiKey, setApiKey, clearApiKey, isStorageEnabled } from './lib/apiKe
 import { extractFeatures, imageToBase64, fileToDataUrl, type ImageFeatures } from './lib/images';
 import { createAnalysisPrompt } from './lib/prompt';
 import { analyzeImages, OpenAIApiError } from './lib/openai';
+import { SHOW_API_KEY_INPUT } from './config';
 import './styles.css';
 
 const App: React.FC = () => {
@@ -104,8 +105,9 @@ const App: React.FC = () => {
       return;
     }
 
-    const currentApiKey = getApiKey() || apiKey;
-    if (!currentApiKey) {
+    // 開発者負担版の場合はAPIキー不要
+    const currentApiKey = SHOW_API_KEY_INPUT ? (getApiKey() || apiKey) : null;
+    if (SHOW_API_KEY_INPUT && !currentApiKey) {
       setError('OpenAI APIキーを入力してください');
       return;
     }
@@ -218,43 +220,54 @@ const App: React.FC = () => {
       </header>
 
       <main className="app-main">
-        {/* APIキー入力 */}
-        <section className="api-key-section">
-          <h2>OpenAI APIキー</h2>
-          <div className="api-key-input">
-            <input
-              type="password"
-              placeholder="sk-..."
-              value={apiKey}
-              onChange={e => handleApiKeyChange(e.target.value)}
-              className="api-key-field"
-            />
-            <label className="save-key-checkbox">
+        {/* APIキー入力（開発者負担版では非表示） */}
+        {SHOW_API_KEY_INPUT ? (
+          <section className="api-key-section">
+            <h2>OpenAI APIキー</h2>
+            <div className="api-key-input">
               <input
-                type="checkbox"
-                checked={saveApiKey}
-                onChange={e => handleSaveApiKeyChange(e.target.checked)}
+                type="password"
+                placeholder="sk-..."
+                value={apiKey}
+                onChange={e => handleApiKeyChange(e.target.value)}
+                className="api-key-field"
               />
-              <span>ブラウザに保存（次回起動時も使用）</span>
-            </label>
-            {apiKey && (
-              <button
-                onClick={() => {
-                  clearApiKey();
-                  setApiKeyState('');
-                  setSaveApiKey(false);
-                }}
-                className="clear-key-btn"
-              >
-                キーを削除
-              </button>
-            )}
-          </div>
-          <p className="api-key-note">
-            注意: APIキーはクライアント側のみで使用され、サーバーには送信されません。
-            {saveApiKey && ' ブラウザのlocalStorageに保存されます。'}
-          </p>
-        </section>
+              <label className="save-key-checkbox">
+                <input
+                  type="checkbox"
+                  checked={saveApiKey}
+                  onChange={e => handleSaveApiKeyChange(e.target.checked)}
+                />
+                <span>ブラウザに保存（次回起動時も使用）</span>
+              </label>
+              {apiKey && (
+                <button
+                  onClick={() => {
+                    clearApiKey();
+                    setApiKeyState('');
+                    setSaveApiKey(false);
+                  }}
+                  className="clear-key-btn"
+                >
+                  キーを削除
+                </button>
+              )}
+            </div>
+            <p className="api-key-note">
+              注意: APIキーはクライアント側のみで使用され、サーバーには送信されません。
+              {saveApiKey && ' ブラウザのlocalStorageに保存されます。'}
+            </p>
+          </section>
+        ) : (
+          <section className="api-key-section">
+            <div className="hosted-mode-notice">
+              <h2>開発者負担版</h2>
+              <p>
+                APIキーの入力は不要です。このサービスは開発者がAPIコストを負担しています。
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* 画像入力 */}
         <section className="input-section">

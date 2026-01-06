@@ -80,19 +80,35 @@ npm install
 
 ### 開発モードで起動
 
+**通常版（APIキー入力が必要）:**
 ```powershell
 npm run dev
 ```
+
+**開発者負担版（GAS経由、APIキー不要）:**
+```powershell
+npm run dev:hosted
+```
+
+開発者負担版を使用する場合は、事前に `web/.env.hosted` ファイルを作成し、GASエンドポイントURLを設定してください（後述）。
 
 これにより、Vite開発サーバーが起動します（通常は `http://localhost:5174`）。
 
 ### ビルド
 
+**通常版:**
 ```powershell
 npm run build
 ```
 
+**開発者負担版:**
+```powershell
+npm run build:hosted
+```
+
 ビルド成果物は `docs/` ディレクトリに出力されます。
+- 通常版: `docs/index.html`
+- 開発者負担版: `docs/hosted.html`
 
 ### プレビュー
 
@@ -101,6 +117,127 @@ npm run preview
 ```
 
 ビルド後のアプリをローカルでプレビューできます。
+
+## 開発者負担版の設定
+
+開発者負担版は、Google Apps Script (GAS) を使用してAPIキーを安全に管理します。
+
+### 1. GASプロジェクトの作成
+
+1. [Google Apps Script](https://script.google.com/) にアクセス
+2. 新しいプロジェクトを作成
+3. 以下のコードを記述して保存:
+
+```javascript
+function doPost(e) {
+  try {
+    const requestData = JSON.parse(e.postData.contents);
+    const { prompt, referenceImage, targetImage, model = 'gpt-4o-mini' } = requestData;
+
+    if (!prompt || !referenceImage || !targetImage) {
+      return ContentService.createTextOutput(
+        JSON.stringify({ error: 'Missing required parameters' })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const properties = PropertiesService.getScriptProperties();
+    const apiKey = properties.getProperty('OPENAI_API_KEY');
+
+    if (!apiKey) {
+      return ContentService.createTextOutput(
+        JSON.stringify({ error: 'Server configuration error' })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const response = UrlFetchApp.fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'post',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      payload: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: 'system',
+            content: [
+              {
+                type: 'text',
+                text: 'あなたはDaVinci Resolveのカラーグレーディングの専門家です。具体的で実践的な操作手順を提示してください。',
+              },
+            ],
+          },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              { type: 'text', text: '\n\n【リファレンス画像（目標ルック）】' },
+              { type: 'image_url', image_url: { url: referenceImage } },
+              { type: 'text', text: '\n\n【編集対象画像（現在の素材）】' },
+              { type: 'image_url', image_url: { url: targetImage } },
+            ],
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+      }),
+    });
+
+    const responseData = JSON.parse(response.getContentText());
+    return ContentService.createTextOutput(JSON.stringify(responseData))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ error: error.toString() })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doOptions() {
+  return ContentService.createTextOutput('')
+    .setMimeType(ContentService.MimeType.JSON);
+}
+```
+
+### 2. APIキーの設定
+
+1. GASエディタで「プロジェクトの設定」（歯車アイコン）を開く
+2. 「スクリプト プロパティ」タブを開く
+3. プロパティを追加:
+   - プロパティ: `OPENAI_API_KEY`
+   - 値: あなたのOpenAI APIキー
+
+### 3. Webアプリとしてデプロイ
+
+1. GASエディタで「デプロイ」→「新しいデプロイ」
+2. 種類: 「ウェブアプリ」を選択
+3. 設定:
+   - 説明: 任意
+   - 次のユーザーとして実行: 「自分」
+   - アクセスできるユーザー: 「全員」
+4. 「デプロイ」をクリック
+5. デプロイURLをコピー（例: `https://script.google.com/macros/s/.../exec`）
+
+### 4. 環境変数の設定
+
+`web/.env.hosted` ファイルを作成し、以下の内容を記述:
+
+```bash
+VITE_GAS_ENDPOINT=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+VITE_HOSTED_MODE=true
+```
+
+`YOUR_SCRIPT_ID` を実際のGASデプロイURLに置き換えてください。
+
+### 5. ビルドとデプロイ
+
+```powershell
+npm run build:hosted
+```
+
+ビルド後、`docs/hosted.html` が生成されます。GitHub Pagesにデプロイすると、以下のURLでアクセスできます:
+- 通常版: `https://hiroshi-kuriyama.github.io/grade-matching-assistant/`
+- 開発者負担版: `https://hiroshi-kuriyama.github.io/grade-matching-assistant/hosted.html`
 
 ## プロジェクト構成
 
