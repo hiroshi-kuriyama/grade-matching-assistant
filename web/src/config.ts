@@ -15,3 +15,4 @@ export const IS_HOSTED_MODE = import.meta.env.VITE_HOSTED_MODE === 'true';
 // 開発者負担版の場合、APIキー入力セクションを非表示にする
 export const SHOW_API_KEY_INPUT = !IS_HOSTED_MODE;
 
+
